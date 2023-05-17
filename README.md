@@ -8,7 +8,7 @@
 
 1. git clone https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4.git
 2. Open [./src/main/java/com/yoshio3/SSEOpenAIController.java](./src/main/java/com/yoshio3/SSEOpenAIController.java) 
-3. Modified the following
+3. Modified the following　code  
   please replace the String to your own Azure OpenAI Access Key.
 
   ```java
