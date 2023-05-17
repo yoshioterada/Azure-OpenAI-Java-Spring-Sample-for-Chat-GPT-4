@@ -4,7 +4,7 @@
 
 * Install Java 17 or latest
 
-# Get codes
+# Run the Application
 
 1. git clone https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4.git
 2. Open [./src/main/java/com/yoshio3/SSEOpenAIController.java](./src/main/java/com/yoshio3/SSEOpenAIController.java) 
