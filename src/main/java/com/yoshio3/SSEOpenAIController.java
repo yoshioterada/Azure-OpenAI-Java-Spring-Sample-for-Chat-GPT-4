@@ -113,8 +113,6 @@ public class SSEOpenAIController {
                                             System.err.println("Terminated: " + returnValue + " " + data);
                                         } else if (result == EmitResult.FAIL_CANCELLED) {
                                             System.err.println("Cancelled: " + returnValue + " " + data);
-                                        } else if (result == EmitResult.FAIL_ZERO_SUBSCRIBER) {
-                                            System.err.println("Zero subscriber: " + returnValue + " " + data);
                                         }
                                     }
                                 } else {
