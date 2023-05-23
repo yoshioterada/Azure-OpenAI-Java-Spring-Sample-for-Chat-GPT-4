@@ -49,7 +49,7 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 		    <groupId>com.microsoft.semantickernel</groupId>
 			<artifactId>openai-sdk</artifactId>
 			<version>0.2.0-SNAPSHOT</version>
@@ -70,7 +70,7 @@
 			<groupId>com.microsoft.semantickernel.connectors</groupId>
 			<artifactId>semantickernel-connectors</artifactId>
 			<version>0.2.0-SNAPSHOT</version>
-		</dependency>
+		</dependency> -->
 
 	</dependencies>
 
