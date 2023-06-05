@@ -1,6 +1,5 @@
 package com.yoshio3;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.yoshio3.request.Message;
 import com.yoshio3.request.OpenAIMessages;
@@ -35,7 +33,7 @@ import reactor.core.publisher.Sinks.EmitResult;
 @Controller
 @Component
 public class SSEOpenAIController {
-    
+
     private final Logger LOGGER = LoggerFactory.getLogger(SSEOpenAIController.class);
 
     // Azure OpenAI のインスタンスの URL
@@ -109,47 +107,36 @@ public class SSEOpenAIController {
                     if (data.contains("[DONE]")) {
                         LOGGER.debug("DONE");
                     } else {
-                        try {
-                            invokeOpenAIAndSendMessageToClient(userSink, data);
-                        } catch (IOException e) {
-                            LOGGER.error("Error: {}", e.getMessage());
-                        }
+                        invokeOpenAIAndSendMessageToClient(userSink, data);
                     }
                 });
     }
 
     // 実際に OpenAI を呼び出し、SSE でデータを返すメソッド
-    private void invokeOpenAIAndSendMessageToClient(Sinks.Many<String> userSink, String data) throws IOException{
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            // GPT-4 の返却値の JSON データを ChatCompletionChunk クラスに変換
-            ChatCompletionChunk inputData =
-                    objectMapper.readValue(data, ChatCompletionChunk.class);
-            if (inputData.getChoices().get(0).getFinish_reason() != null
-                    && inputData.getChoices().get(0).getFinish_reason()
-                            .equals("stop")) {
-                // GPT-4 の返却値の内、返却する文字列の部分のみ取得
+    private void invokeOpenAIAndSendMessageToClient(Sinks.Many<String> userSink, String data) {
+        // GPT-4 の返却値の JSON データを ChatCompletionChunk クラスに変換
+        Gson gson = new Gson();
+        ChatCompletionChunk inputData = gson.fromJson(data, ChatCompletionChunk.class);
+
+        if (inputData.getChoices().get(0).getFinish_reason() != null
+                && inputData.getChoices().get(0).getFinish_reason().equals("stop")) {
+            // GPT-4 の返却値の内、返却する文字列の部分のみ取得
+        } else {
+            // GPT-4 の返却値の内、返却する文字列の部分のみ取得
+            String returnValue = inputData.getChoices().get(0).getDelta().getContent();
+            if (returnValue != null) {
+                LOGGER.debug(returnValue);
+                // 空白文字対応 (HTML で空白文字を表示するため、特殊文字列に置換して送信)
+                returnValue = returnValue.replace(" ", "<SPECIAL_WHITE_SPACEr>");
+                returnValue = returnValue.replace("\n", "<SPECIAL_LINE_SEPARATOR>");
+                LOGGER.debug(returnValue);
+                // Server Sent Event で SSE Client に対してチャンクデータを送信
+                EmitResult result = userSink.tryEmitNext(returnValue);
+                // SSE でメッセージを送信した際の、エラー発生時の理由を表示
+                showDetailErrorReasonForSSE(result, returnValue, data);
             } else {
-                // GPT-4 の返却値の内、返却する文字列の部分のみ取得
-                String returnValue =
-                        inputData.getChoices().get(0).getDelta().getContent();
-                if (returnValue != null) {
-                    LOGGER.debug(returnValue);
-                    // 空白文字対応 (HTML で空白文字を表示するため、特殊文字列に置換して送信)
-                    returnValue =
-                            returnValue.replace(" ", "<SPECIAL_WHITE_SPACEr>");
-                    returnValue = returnValue.replace("\n", "<SPECIAL_LINE_SEPARATOR>");
-                    LOGGER.debug(returnValue);
-                    // Server Sent Event で SSE Client に対してチャンクデータを送信
-                    EmitResult result = userSink.tryEmitNext(returnValue);
-                    // SSE でメッセージを送信した際の、エラー発生時の理由を表示
-                    showDetailErrorReasonForSSE(result, returnValue, data);
-                } else {
-                    userSink.tryEmitNext("");
-                }
+                userSink.tryEmitNext("");
             }
-        } catch (IOException e) {
-            throw e;
         }
     }
 
@@ -173,7 +160,7 @@ public class SSEOpenAIController {
 
     // OpenAI から帰ってきたデータを一度に SSE に対して送信すると
     // バッファオーバフローになるため、数十ミリ秒待機する
-    private void sleepPreventFromOverflow(){
+    private void sleepPreventFromOverflow() {
         try {
             TimeUnit.MILLISECONDS.sleep(20);
         } catch (InterruptedException e) {
