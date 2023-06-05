@@ -64,7 +64,7 @@ logging.level.root=INFO
 ## アプリケーションの実行
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 実行すると下記のメッセージが出力されます。
